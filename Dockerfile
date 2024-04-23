@@ -1,8 +1,17 @@
-FROM jenkins/jenkins:latest
+FROM openjdk:11
 
-USER root
-RUN apt-get update && apt-get install -y lsb-release && \
-    curl -fsSLo /usr/share/keyrings/docker-archive-keyring.asc https://download.docker.com/linux/debian/gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.asc] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list && \
-    apt-get update && apt-get install -y docker-ce-cli
-USER jenkins
+ENV MAVEN_HOME /usr/share/MAVEN_HOME
+ENV MAVEN_VEPSION 3.8.2
+ENV PATH $MAVEN_HOME/bin:$PATH
+
+RUN apt-get update \
+    && apt-get install -y maven \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . /usr/src/app
+
+WORKDIR /usr/src/app
+
+RUN mvn clean install
+
+CMD ["java", "-jar", "target/myapp.jar"]
